@@ -1,0 +1,18 @@
+# Cluster "Code-Manager" : héberge GitLab (et ses runners).
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: code-manager
+nodes:
+  - role: control-plane
+    labels:
+      ingress-ready: "true"        # le point d'entrée HTTP (Traefik) tournera sur ce nœud
+    extraPortMappings:             # http(s)://localhost sur ton PC => entre dans le cluster
+      - containerPort: 80
+        hostPort: 80
+      - containerPort: 443
+        hostPort: 443
+      - containerPort: 22          # git clone en SSH, sur le port 2222 du PC
+        hostPort: 2222
+    extraMounts:                   # les volumes (PVC) de GitLab sont écrits sur le disque
+      - hostPath: /srv/lab/forge   # hors du conteneur kind => supprimer le cluster ne perd pas les données
+        containerPath: /var/local-path-provisioner

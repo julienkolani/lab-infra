@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# lab : l'interrupteur du labo.
+#   lab status   ce qui tourne, et ce que ça consomme
+#   lab up       tout allumer
+#   lab down     tout éteindre (libère RAM, CPU et GPU), rien ne redémarre au boot
+#
+# On ajoutera une ligne ici à chaque brique (GitLab, runner, DNS...).
+set -euo pipefail
+
+# Conteneurs lancés à la main (pas encore dans un docker compose)
+CONTAINERS=(floci floci-aws-ui)
+
+# Nœuds de tous les clusters kind (kind les étiquette avec ce label)
+kind_nodes() { docker ps -a --filter label=io.x-k8s.kind.cluster --format '{{.Names}}'; }
+
+# Ne garde que les conteneurs qui existent vraiment
+existing() { for c in "$@"; do docker inspect "$c" >/dev/null 2>&1 && echo "$c"; done; }
+
+all_lab_containers() { existing "${CONTAINERS[@]}"; kind_nodes; }
+
+status() {
+  echo "== Conteneurs du labo"
+  for c in $(all_lab_containers); do
+    docker inspect -f '  {{.Name}}  {{.State.Status}}' "$c" | sed 's|/||'
+  done
+  echo "== Consommation (conteneurs allumés)"
+  docker stats --no-stream --format '{{.Name}}  CPU {{.CPUPerc}}  RAM {{.MemUsage}}' | sed 's/^/  /'
+  echo "== GPU"
+  nvidia-smi --query-gpu=memory.used,memory.total,utilization.gpu --format=csv,noheader 2>&1 | sed 's/^/  /' \
+    || echo "  (GPU illisible : si 'version mismatch', le driver a été mis à jour => redémarre le PC)"
+}
+
+up() {
+  echo "== Allumage du labo"
+  docker start $(all_lab_containers)
+}
+
+down() {
+  echo "== Extinction du labo"
+  local cs
+  cs=$(all_lab_containers)
+  [ -z "$cs" ] && return
+  docker stop $cs
+  # kind remet ses nœuds en "restart=on-failure" : on l'enlève pour qu'ils
+  # ne se rallument pas tout seuls au prochain démarrage du PC.
+  docker update --restart=no $cs >/dev/null
+}
+
+case "${1:-status}" in
+  up) up; status ;;
+  down) down; status ;;
+  status) status ;;
+  *) echo "Usage : lab up|down|status"; exit 1 ;;
+esac
