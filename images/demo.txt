@@ -1,0 +1,6 @@
+# Démo MLOps (demo-llm-ops) : serving, entraînement, accès au registry de modèles.
+
+vllm/vllm-openai:v0.6.4.post1
+pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+amazon/aws-cli:2.22.0
+ubuntu:24.04

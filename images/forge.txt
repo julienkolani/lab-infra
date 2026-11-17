@@ -1,0 +1,46 @@
+# Cluster code-manager : GitLab et tout ce dont il a besoin.
+# tag FIXE
+
+# --- Porte d'entrée HTTP : Gateway API (Envoy Gateway)
+docker.io/envoyproxy/envoy:distroless-v1.39.6
+docker.io/envoyproxy/gateway:v1.9.3
+docker.io/envoyproxy/ratelimit:5ae0682e
+
+# --- Certificats TLS : cert-manager
+quay.io/jetstack/cert-manager-cainjector:v1.21.3
+quay.io/jetstack/cert-manager-controller:v1.21.3
+quay.io/jetstack/cert-manager-startupapicheck:v1.21.3
+quay.io/jetstack/cert-manager-webhook:v1.21.3
+
+# --- Secrets : OpenBao (coffre-fort) + External Secrets Operator (synchro vers k8s)
+quay.io/openbao/openbao:2.7.2
+ghcr.io/external-secrets/external-secrets:v2.15.0
+
+# --- Dépendances de GitLab : base de données, cache, stockage S3
+postgres:17-alpine
+redis:7.4-alpine
+dxflrs/garage:v2.5.0
+
+# --- GitLab CE (chart gitlab 10.5.6)
+registry.gitlab.com/gitlab-org/build/cng/certificates:v19.5.5
+registry.gitlab.com/gitlab-org/build/cng/cfssl-self-sign:v19.5.5
+registry.gitlab.com/gitlab-org/build/cng/gitaly:v19.5.5
+registry.gitlab.com/gitlab-org/build/cng/gitlab-base:v19.5.5
+registry.gitlab.com/gitlab-org/build/cng/gitlab-container-registry:v4.42.0-gitlab
+registry.gitlab.com/gitlab-org/build/cng/gitlab-exporter:17.0.2
+registry.gitlab.com/gitlab-org/build/cng/gitlab-kas:v19.5.5
+registry.gitlab.com/gitlab-org/build/cng/gitlab-shell:v14.58.0
+registry.gitlab.com/gitlab-org/build/cng/gitlab-sidekiq-ce:v19.5.5
+registry.gitlab.com/gitlab-org/build/cng/gitlab-toolbox-ce:v19.5.5
+registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ce:v19.5.5
+registry.gitlab.com/gitlab-org/build/cng/gitlab-workhorse-ce:v19.5.5
+registry.gitlab.com/gitlab-org/build/cng/kubectl:v19.5.5
+
+# --- Runner GitLab
+registry.gitlab.com/gitlab-org/gitlab-runner:alpine-v19.5.3
+registry.gitlab.com/gitlab-org/gitlab-runner/gitlab-runner-helper:x86_64-v19.5.3
+
+# --- Pas utilisées Téléchargées, mais pas chargées.
+# registry.gitlab.com/gitlab-org/cloud-native/gitlab-operator:3.5.5
+# quay.io/prometheus/prometheus:v3.14.0
+# quay.io/prometheus-operator/prometheus-config-reloader:v0.94.0
